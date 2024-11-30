@@ -32,23 +32,12 @@ The web application interface is built using basic HTML5 and includes the follow
 
 ## Dependencies
 
-ApexCharts - For data visualization
-Simple Statistics - For statistical calculations
-Leaflet - For interactive maps
-Roboto Flex Font - For typography
+1. ApexCharts - For data visualization
+2. Simple Statistics - For statistical calculations
+3. Leaflet - For interactive maps
+4. Roboto Flex Font - For typography
 
-## Data Format
-The application expects a JSON file (wdi.json) with the following structure:
-jsonCopy[
-  {
-    "Country Code": "USA",
-    "Series Name": "GDP (current US$)",
-    "2000": "10252345678",
-    "2001": "10581234567",
-    // ... additional years
-  }
-  // ... additional countries and indicators
-]
+
 ### Data
 
 - Data is provided via a JSON file sourced from the World Development Index dataset. The JSON file includes information on multiple countries and their development indicators.
