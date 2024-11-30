@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>World Development Index Analysis</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-statistics@7.8.3/dist/simple-statistics.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+      body {
+        font-family: "Roboto Flex", sans-serif;
+        background-color: rgb(15, 24, 15);
+        color: #ffffff;
+        padding: 20px;
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      h1,
+      h3 {
+        color: #647166;
+        text-align: center;
+        margin: 0 0 20px 0;
+      }
+      .main-container {
+        display: flex;
+        flex: 1;
+        gap: 20px;
+        min-height: 0;
+      }
+      .controls {
+        width: 20%;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        height: 100%;
+        overflow-y: auto;
+      }
+      .visualization-container {
+        width: 80%;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .chart-container {
+        flex: 1;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        min-height: 0;
+      }
+      .maps-container {
+        height: 200px;
+        display: flex;
+        gap: 20px;
+      }
+      #map1,
+      #map2,
+      #map3 {
+        flex: 1;
+        border-radius: 8px;
+      }
+      select {
+        width: 100%;
+        margin-bottom: 15px;
+        padding: 8px;
+        background: #1a2b1a;
+        color: white;
+        border: 1px solid #647166;
+        border-radius: 4px;
+      }
+
+      select:last-of-type {
+        margin-bottom: 0;
+      }
+
+      select[multiple] {
+        height: 200px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        color: #647166;
+        font-weight: bold;
+      }
+      .instructions {
+        color: #e8f5e9;
+        margin-bottom: 20px;
+        font-size: 14px;
+        padding: 10px;
+        background: rgba(97, 135, 98, 0.1);
+        border-radius: 4px;
+      }
+      .instructions strong {
+        color: #618762;
+      }
+      #chart {
+        height: 100%;
+        width: 100%;
+      }
+      .error-message {
+        color: #ff6b6b;
+        padding: 10px;
+        margin: 10px 0;
+        background: rgba(255, 107, 107, 0.1);
+        border-radius: 4px;
+        display: none;
+      }
+      .stats-container {
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        margin-top: 10px;
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+      .stat-box {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 10px;
+        border-radius: 4px;
+        font-size: 0.9em;
+      }
+      .significant {
+        color: #4caf50;
+      }
+      .not-significant {
+        color: #ff6b6b;
+      }
+      .stats-explanation {
+        order: 999;
+        margin-top: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        padding: 15px;
+        color: #e8f5e9;
+        font-size: 0.9em;
+      }
+
+      .stats-explanation h3 {
+        color: #647166;
+        margin: 0 0 10px 0;
+        font-size: 1.1em;
+      }
+
+      .stats-explanation h4 {
+        color: #618762;
+        margin: 10px 0 5px 0;
+        font-size: 1em;
+      }
+
+      .explanation-content p {
+        margin: 0 0 12px 0;
+        line-height: 1.4;
+      }
+
+      .bullet {
+        color: #618762;
+        margin-right: 4px;
+      }
+
+      .explanation-content {
+        max-height: 200px;
+        overflow-y: auto;
+        padding-right: 10px;
+      }
+
+      .explanation-content::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .explanation-content::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+      }
+
+      .explanation-content::-webkit-scrollbar-thumb {
+        background: #618762;
+        border-radius: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>World Development Index</h1>
+    <div class="main-container">
+      <div class="controls">
+        <div class="instructions">
+          <p>
+            Press and hold <strong>'Ctrl'</strong> (Windows) or
+            <strong>'Cmd'</strong> (Mac) while clicking to select exactly 3
+            countries.
+          </p>
+        </div>
+        <div class="stats-explanation">
+          <h3>Statistical Analysis Guide</h3>
+          <div class="explanation-content">
+            <h4>Correlation</h4>
+            <p>
+              Measures how two countries' indicators move together over time:
+              <span class="bullet">•</span> 1.0: Perfect positive correlation
+              <span class="bullet">•</span> 0.0: No correlation
+              <span class="bullet">•</span> -1.0: Perfect negative correlation
+            </p>
+
+            <h4>Trends</h4>
+            <p>
+              Shows the overall direction of change:
+              <span class="bullet">•</span> Increasing: >5% growth
+              <span class="bullet">•</span> Stable: Between -5% and 5%
+              <span class="bullet">•</span> Decreasing: >5% decline
+            </p>
+
+            <h4>Relative Difference</h4>
+            <p>
+              The percentage difference between two countries' averages, showing
+              the magnitude of disparity between them.
+            </p>
+          </div>
+        </div>
+        <div class="error-message" id="errorMessage"></div>
+        <label for="countrySelect">Select Countries:</label>
+        <select id="countrySelect" multiple>
+          <option value="ARG">Argentina</option>
+          <option value="AUS">Australia</option>
+          <option value="BRA">Brazil</option>
+          <option value="IND">India</option>
+          <option value="IDN">Indonesia</option>
+          <option value="CHN">China</option>
+          <option value="ITA">Italy</option>
+          <option value="JPN">Japan</option>
+          <option value="KOR">Korea</option>
+          <option value="GBR">United Kingdom</option>
+          <option value="MEX">Mexico</option>
+          <option value="USA">United States</option>
+        </select>
+        <label for="indicatorSelect">Select Indicator:</label>
+        <select id="indicatorSelect">
+          <option value="Adolescent fertility rate">
+            Adolescent fertility rate (births per 1,000 women ages 15-19)
+          </option>
+          <option value="Exports of goods">
+            Exports of goods and services (% of GDP)
+          </option>
+          <option value="Fertility rate">
+            Fertility rate, total (births per woman)
+          </option>
+          <option value="Foreign direct investment">
+            Foreign direct investment, net inflows (BoP, current US$)
+          </option>
+          <option value="Forest area">Forest area (sq. km)</option>
+          <option value="GDP">GDP (current US$)</option>
+          <option value="GDP growth">GDP growth (annual %)</option>
+          <option value="GNI per capita">
+            GNI per capita, Atlas method (current US$)
+          </option>
+          <option value="GNI per capita PPP">
+            GNI per capita, PPP (current international $)
+          </option>
+        </select>
+      </div>
+      <div class="visualization-container">
+        <div class="chart-container">
+          <div id="chart"></div>
+        </div>
+        <div class="stats-container">
+          <h3>Statistical Analysis</h3>
+          <div id="statsOutput" class="stats-grid"></div>
+        </div>
+        <div class="maps-container">
+          <div id="map1"></div>
+          <div id="map2"></div>
+          <div id="map3"></div>
+        </div>
+      </div>
+    </div>
+  </body>
+
+  <script src="script.js"></script>
+  </html>
