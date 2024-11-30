@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Development Index Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-statistics@7.8.3/dist/simple-statistics.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        body {
+            font-family: "Roboto Flex", sans-serif;
+            background-color: rgb(15, 24, 15);
+            color: #ffffff;
+            padding: 20px;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        h1, h3 {
+            color: #647166;
+            text-align: center;
+            margin: 0 0 20px 0;
+        }
+        .main-container {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            min-height: 0;
+        }
+        .controls {
+            width: 20%;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            overflow-y: auto;
+        }
+        .visualization-container {
+            width: 80%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .chart-container {
+            flex: 1;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            min-height: 0;
+        }
+        .maps-container {
+            height: 200px;
+            display: flex;
+            gap: 20px;
+        }
+        #map1, #map2, #map3 {
+            flex: 1;
+            border-radius: 8px;
+        }
+        select {
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 8px;
+            background: #1a2b1a;
+            color: white;
+            border: 1px solid #647166;
+            border-radius: 4px;
+        }
+        select[multiple] {
+            height: 200px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #647166;
+            font-weight: bold;
+        }
+        .instructions {
+            color: #e8f5e9;
+            margin-bottom: 20px;
+            font-size: 14px;
+            padding: 10px;
+            background: rgba(97, 135, 98, 0.1);
+            border-radius: 4px;
+        }
+        .instructions strong {
+            color: #618762;
+        }
+        #chart {
+            height: 100%;
+            width: 100%;
+        }
+        .error-message {
+            color: #ff6b6b;
+            padding: 10px;
+            margin: 10px 0;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 4px;
+            display: none;
+        }
+        .stats-container {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .stat-box {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .significant {
+            color: #4CAF50;
+        }
+        .not-significant {
+            color: #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <h1>World Development Index</h1>
+    <div class="main-container">
+        <div class="controls">
+            <div class="instructions">
+                <p>Press and hold <strong>'Ctrl'</strong> (Windows) or <strong>'Cmd'</strong> (Mac) while clicking to select exactly 3 countries.</p>
+            </div>
+            <div class="error-message" id="errorMessage"></div>
+            <label for="countrySelect">Select Countries:</label>
+            <select id="countrySelect" multiple>
+                <option value="ARG">Argentina</option>
+                <option value="AUS">Australia</option>
+                <option value="BRA">Brazil</option>
+                <option value="IND">India</option>
+                <option value="IDN">Indonesia</option>
+                <option value="CHN">China</option>
+                <option value="ITA">Italy</option>
+                <option value="JPN">Japan</option>
+                <option value="KOR">Korea</option>
+                <option value="GBR">United Kingdom</option>
+                <option value="MEX">Mexico</option>
+                <option value="USA">United States</option>
+            </select>
+            <label for="indicatorSelect">Select Indicator:</label>
+            <select id="indicatorSelect">
+                <option value="Adolescent fertility rate">Adolescent fertility rate (births per 1,000 women ages 15-19)</option>
+                <option value="Exports of goods">Exports of goods and services (% of GDP)</option>
+                <option value="Fertility rate">Fertility rate, total (births per woman)</option>
+                <option value="Foreign direct investment">Foreign direct investment, net inflows (BoP, current US$)</option>
+                <option value="Forest area">Forest area (sq. km)</option>
+                <option value="GDP">GDP (current US$)</option>
+                <option value="GDP growth">GDP growth (annual %)</option>
+                <option value="GNI per capita">GNI per capita, Atlas method (current US$)</option>
+                <option value="GNI per capita PPP">GNI per capita, PPP (current international $)</option>
+            </select>
+        </div>
+        <div class="visualization-container">
+            <div class="chart-container">
+                <div id="chart"></div>
+            </div>
+            <div class="stats-container">
+                <h3>Statistical Analysis</h3>
+                <div id="statsOutput" class="stats-grid"></div>
+            </div>
+            <div class="maps-container">
+                <div id="map1"></div>
+                <div id="map2"></div>
+                <div id="map3"></div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    let chart = null;
+    
+    const maps = ["map1", "map2", "map3"].map((id) => {
+        const map = L.map(id).setView([0, 0], 2);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "© OpenStreetMap contributors",
+        }).addTo(map);
+        return map;
+    });
+    
+    const countryCoordinates = {
+        ARG: { lat: -38.4161, lon: -63.6167, zoom: 4 },
+        AUS: { lat: -25.2744, lon: 133.7751, zoom: 4 },
+        BRA: { lat: -14.235, lon: -51.9253, zoom: 4 },
+        IND: { lat: 20.5937, lon: 78.9629, zoom: 4 },
+        IDN: { lat: -0.7893, lon: 113.9213, zoom: 4 },
+        CHN: { lat: 35.8617, lon: 104.1954, zoom: 4 },
+        ITA: { lat: 41.8719, lon: 12.5674, zoom: 4 },
+        JPN: { lat: 36.2048, lon: 138.2529, zoom: 4 },
+        KOR: { lat: 35.9078, lon: 127.7669, zoom: 4 },
+        GBR: { lat: 51.5074, lon: -0.1278, zoom: 4 },
+        MEX: { lat: 23.6345, lon: -102.5528, zoom: 4 },
+        USA: { lat: 37.0902, lon: -95.7129, zoom: 4 },
+    };
+    
+    function showError(message) {
+        const errorElement = document.getElementById("errorMessage");
+        errorElement.textContent = message;
+        errorElement.style.display = "block";
+        setTimeout(() => {
+            errorElement.style.display = "none";
+        }, 3000);
+    }
+    
+    function performStatisticalTests(data) {
+        const results = [];
+        const countries = data.slice(0, 3);
+        
+        for (let i = 0; i < countries.length; i++) {
+            for (let j = i + 1; j < countries.length; j++) {
+                const country1 = countries[i];
+                const country2 = countries[j];
+                
+                const pairedData = getPairedData(country1.data, country2.data);
+                
+                if (pairedData.length < 2) continue;
+                
+                const result = calculateStatistics(
+                    pairedData.map(d => d[0]),
+                    pairedData.map(d => d[1]),
+                    country1.name,
+                    country2.name
+                );
+                
+                results.push(result);
+            }
+        }
+        
+        displayStatistics(results);
+    }
+    
+    function getPairedData(data1, data2) {
+        const paired = [];
+        data1.forEach(point1 => {
+            const point2 = data2.find(p2 => p2.x === point1.x);
+            if (point2) {
+                paired.push([point1.y, point2.y]);
+            }
+        });
+        return paired;
+    }
+    
+    function calculateStatistics(array1, array2, name1, name2) {
+        const differences = array1.map((val, idx) => val - array2[idx]);
+        const meanDiff = ss.mean(differences);
+        
+        const tStat = ss.tTest(array1, array2);
+        const significant = tStat < 0.05;
+        
+        const pooledStd = Math.sqrt((ss.variance(array1) + ss.variance(array2)) / 2);
+        const cohensD = Math.abs(meanDiff) / pooledStd;
+        
+        return {
+            country1: name1,
+            country2: name2,
+            meanDifference: meanDiff,
+            pValue: tStat,
+            significant: significant,
+            effectSize: cohensD
+        };
+    }
+    
+    function displayStatistics(results) {
+        const statsDiv = document.getElementById('statsOutput');
+        statsDiv.innerHTML = '';
+        
+        results.forEach(result => {
+            const statBox = document.createElement('div');
+            statBox.className = 'stat-box';
+            
+            const significance = result.significant ? 
+                '<span class="significant">Statistically Significant</span>' : 
+                '<span class="not-significant">Not Significant</span>';
+            
+            statBox.innerHTML = `
+                <strong>${result.country1} vs ${result.country2}</strong><br>
+                Mean Difference: ${result.meanDifference.toFixed(2)}<br>
+                p-value: ${result.pValue.toFixed(4)}<br>
+                Effect Size: ${result.effectSize.toFixed(2)}<br>
+                ${significance}
+            `;
+            
+            statsDiv.appendChild(statBox);
+        });
+    }
+    
+    async function updateVisualization() {
+        const selectedCountries = Array.from(
+            document.getElementById("countrySelect").selectedOptions
+        ).map((option) => option.value);
+    
+        if (selectedCountries.length !== 3) {
+            showError("Please select exactly 3 countries");
+            return;
+        }
+    
+        try {
+            const response = await fetch("wdi.json");
+            if (!response.ok) throw new Error("Failed to fetch data");
+            const data = await response.json();
+    
+            const indicator = document.getElementById("indicatorSelect").value;
+            const chartData = processData(data, selectedCountries, indicator);
+            
+            updateChart(chartData);
+            updateMaps(selectedCountries);
+            performStatisticalTests(chartData);
+            
+        } catch (error) {
+            showError("Error loading data: " + error.message);
+        }
+    }
+    
+    function processData(data, countries, indicator) {
+        const allCountries = [
+            "ARG", "AUS", "BRA", "IND", "IDN", "CHN", "ITA", 
+            "JPN", "KOR", "GBR", "MEX", "USA"
+        ];
+    
+        const allCountryData = allCountries
+            .map((country) => {
+                const countryData = data.find(
+                    (d) => d["Country Code"] === country && 
+                          d["Series Name"].includes(indicator)
+                );
+    
+                if (!countryData) return null;
+    
+                return {
+                    name: country,
+                    data: Object.entries(countryData)
+                        .filter(([key]) => /^\d{4}/.test(key))
+                        .map(([year, value]) => ({
+                            year: year.split(" ")[0],
+                            value: parseFloat(value) || null,
+                        }))
+                        .filter((point) => point.value !== null),
+                };
+            })
+            .filter(Boolean);
+    
+        const yearlyAverages = {};
+        allCountryData.forEach((country) => {
+            country.data.forEach((point) => {
+                if (!yearlyAverages[point.year]) {
+                    yearlyAverages[point.year] = {
+                        sum: point.value,
+                        count: 1,
+                    };
+                } else {
+                    yearlyAverages[point.year].sum += point.value;
+                    yearlyAverages[point.year].count++;
+                }
+            });
+        });
+    
+        const averageSeries = {
+            name: "Average",
+            data: Object.entries(yearlyAverages)
+                .map(([year, data]) => ({
+                    x: year,
+                    y: data.sum / data.count,
+                }))
+                .sort((a, b) => a.x.localeCompare(b.x)),
+            type: "line",
+            dashArray: 5,
+        };
+    
+        return [
+            ...countries.map((country) => {
+                const countryData = allCountryData.find((d) => d.name === country);
+                return {
+                    name: country,
+                    data: countryData?.data.map((point) => ({
+                        x: point.year,
+                        y: point.value,
+                    })) || [],
+                };
+            }),
+            averageSeries,
+        ];
+    }
+    
+    function updateChart(data) {
+        const options = {
+            series: data,
+            chart: {
+                type: "line",
+                height: "100%",
+                background: "transparent",
+                animations: {
+                    enabled: true,
+                },
+            },
+            theme: {
+                mode: "dark",
+            },
+            stroke: {
+                curve: "smooth",
+                width: [3, 3, 3, 2],
+                dashArray: [0, 0, 0, 5],
+            },
+            colors: ["#00ff00", "#ff0000", "#0000ff", "#FFA500"],
+            xaxis: {
+                type: "category",
+                labels: {
+                    style: {
+                        colors: "#ffffff",
+                    },
+                },
+            },
+            yaxis: {
+                labels: {
+                    style: {
+                        colors: "#ffffff",
+                    },
+                    formatter: (value) => value.toLocaleString(),
+                },
+            },
+            legend: {
+                labels: {
+                    colors: "#ffffff",
+                },
+            },
+            tooltip: {
+                theme: "dark",
+            },
+        };
+    
+        if (chart) {
+            chart.destroy();
+        }
+        chart = new ApexCharts(document.querySelector("#chart"), options);
+        chart.render();
+    }
+    
+    function updateMaps(countries) {
+        maps.forEach((map, index) => {
+            const country = countries[index];
+            if (countryCoordinates[country]) {
+                const { lat, lon, zoom } = countryCoordinates[country];
+                map.setView([lat, lon], zoom);
+            }
+        });
+    }
+    
+    document.getElementById("countrySelect").addEventListener("change", updateVisualization);
+    document.getElementById("indicatorSelect").addEventListener("change", updateVisualization);
+    
+    maps.forEach((map) => map.setView([0, 0], 2));
+    </script>
+    
+</html>
