@@ -1,5 +1,5 @@
 # World Development Index Project
-https://github.com/nilesdan/Assignment1?tab=readme-ov-file#readme
+https://github.com/nilesdan/final_assignment/tree/main
 ## Overview
 
 This project provides a simple web-based application to explore data from the World Development Index (WDI). It allows users to select countries and specific development indicators to visualize historical trends. The data is sourced from a static JSON file.
