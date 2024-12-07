@@ -3,7 +3,10 @@ https://github.com/nilesdan/final_assignment/tree/main
 
 ## URL
 https://nilesdan.github.io/final_assignment/
+<<<<<<< HEAD
 
+=======
+>>>>>>> f1026c41e28b8bee934c2145f7b44d15478ccc0e
 ## Overview
 
 This project provides a simple web-based application to explore data from the World Development Index (WDI). It allows users to select countries and specific development indicators to visualize historical trends. The data is sourced from a static JSON file.
